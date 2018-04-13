@@ -21,6 +21,10 @@ import java.util.stream.Collectors;
 import org.tartarus.snowball.SnowballStemmer;
 import org.tartarus.snowball.ext.englishStemmer;
 
+/**
+ * This class is used to scan a directory and extract a count
+ * of keywords that have been stemmed.
+ */
 public class DocScanner {
 
   private static final String FILE_PATH = "/Users/jacqueschevrier/Desktop/ResumeCorpus";
@@ -57,13 +61,28 @@ public class DocScanner {
       "exceeded", "excelled", "executed", "expedited", "extracted", "facilitated", "finalized",
       "follow", "forecast", "formed", "fulfilled", "gained", "generated", "handled", "headed"};
 
-  static Pattern splitter = Pattern.compile("['\"()\\[\\]\\.,;]*\\s+['\"()\\[\\]\\.,;]*");
-  static SnowballStemmer stemmer = new englishStemmer();
-  static List<String> exclusion = Arrays.asList(EXCLUSIONS);
-  static List<String> suggests = Arrays.asList(SUGGESTS);
-  static File individual;
+  private static Pattern splitter = Pattern.compile("['\"()\\[\\]\\.,;]*\\s+['\"()\\[\\]\\.,;]*");
+  private static SnowballStemmer stemmer = new englishStemmer();
+  private static List<String> exclusion = Arrays.asList(EXCLUSIONS);
+  private static List<String> suggests = Arrays.asList(SUGGESTS);
+  private static File individual;
 
+  private static long wordCounter;
+  private static long keyCounter;
+
+  /**
+   * This main method scans a directory specified by the path <code>FILE_PATH</code> for files.
+   * It then scans those documents for words, omitting words specified by <code>exclusion</code>.
+   * Once these words are identified, they are filtered to ensure they appear at least 50 times
+   * throughout the directory. They are stemmed and stored with a value in descending order according
+   * to how many times they appeared within the directory.
+   * @param args
+   * @throws IOException this may occure if the <code>FILE_PATH</code> specified is invalid or
+   * leads to a directory that in empty.
+   */
   public static void main(String[] args) throws IOException {
+    wordCounter = 0;
+    keyCounter = 0;
     File directory = new File(FILE_PATH);
     exclusion = Arrays.stream(EXCLUSIONS).map(word -> {
       stemmer.setCurrent(word);
@@ -83,6 +102,7 @@ public class DocScanner {
     }
     Map<String, Long> collect =
         allLines.stream().map(line -> splitter.splitAsStream(line)).flatMap(Function.identity())
+            .peek(word -> wordCounter++)
             .map(word -> {
               stemmer.setCurrent(word);
               return stemmer.stem() ? stemmer.getCurrent().toLowerCase() : null;
@@ -93,6 +113,7 @@ public class DocScanner {
             .filter(word -> org.apache.commons.lang3.StringUtils.isAlpha(word))
             .collect(groupingBy(Function.identity(), counting())).entrySet().stream()
             .filter((k) -> (k.getValue() >= 50))
+            .peek(word -> keyCounter += word.getValue())
             .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
@@ -102,8 +123,9 @@ public class DocScanner {
                 },
                 LinkedHashMap::new
             ));
-    System.out.println(collect.size());
-    System.out.println(collect);
+    System.out.println(keyCounter);
+    System.out.println(wordCounter);
+    System.out.println(1.0 * keyCounter/wordCounter);
 
 
 //
