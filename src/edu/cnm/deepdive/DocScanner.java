@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -72,7 +71,7 @@ public class DocScanner {
 
   /**
    * This main method scans a directory specified by the path <code>FILE_PATH</code> for files.
-   * It then scans those documents for words, omitting words specified by <code>exclusion</code>.
+   * It then scans those documents for words, omitting words specified by <code>EXCLUSIONS</code>.
    * Once these words are identified, they are filtered to ensure they appear at least 50 times
    * throughout the directory. They are stemmed and stored with a value in descending order according
    * to how many times they appeared within the directory.
